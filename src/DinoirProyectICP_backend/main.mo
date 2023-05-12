@@ -1,48 +1,81 @@
-import HashMap "mo:base/HashMap";
+
+import Nat "mo:base/Nat";
+import Nat8 "mo:base/Nat8";
 import Text "mo:base/Text";
-import Principal "mo:base/Principal";
+import Iter "mo:base/Iter";
 import Array "mo:base/Array";
 import Debug "mo:base/Debug";
+import RBTree "mo:base/RBTree";
+import Random  "mo:base/Random";
+import HashMap "mo:base/HashMap";
+import Principal "mo:base/Principal";
 
-actor MemeGallery {
 
-  // Creamos tipos especificos
-  type Mensaje = Text;
-  type Artista = Principal;
+actor Quizzis {
 
-  //creamos un tipo abstracto para nuestros memes
-  type Meme = {
-    url : Text;
-    desc : Text;
+  var title: Text = "";
+  type Question = {question: Text; respuesta_a: Text; respuesta_b: Text; correcta: Text;};
+  var questions: RBTree.RBTree<Text, Question> = RBTree.RBTree(Text.compare);
+  var randomNumber :Nat = 1;
+  var adward : Nat = 1;
+  var maximo : Nat = 1;
+  let seed : Blob = "\14\C9\72\09\03\D4\D5\72\82\95\E5\43\AF\FA\A9\44\49\2F\25\56\13\F3\6E\C7\B0\87\DC\76\08\69\14\CF";
+  let random = Random.Finite(seed);
+
+  public query func getQuestion(entry: Text) : async Question {
+    let question_for_entry :?Question = questions.get(entry);
+    let question : Question = switch question_for_entry {
+      case (null) {
+        {
+          question = ""; respuesta_a = ""; respuesta_b = ""; correcta= "";
+        };
+      };
+      case (?question_for_entry) question_for_entry;
+    };
+    return question
   };
 
-  //creamos el hashmap para almacenar los memes
-  let memes = HashMap.HashMap<Artista, Meme>(0, Principal.equal, Principal.hash);
-
-  //función que almacena un meme en la galería
-  public shared (msg) func saveMemeInGallery(meme : Meme) : async Meme {
-    //Obtenemos la cuenta de quien invoco la función (Artista) mediante el objeto msg que contiene el mensaje asincrono del Actor.
-    let artista : Principal = msg.caller;
-
-    //insertamos en meme en la galeria
-    memes.put(artista, meme);
-
-    // Imprimimos en el log del ambiente de desarrollo creado al ejecutar
-    // dfx start en tu terminal
-    Debug.print("Tu meme fue almacenado correctamente en la galeria " # Principal.toText(artista) # "gracias! :)");
-    return meme;
+  public query func getReward() : async Text {
+    adward := switch (random.binomial(Nat8.fromNat(maximo))) {
+      case(?value) Nat8.toNat(value);
+      case(null) 0;
+    };
+    return Nat.toText(randomNumber)
   };
 
-  //funcion que obtiene un meme en caso de que exista en el HashMap
-  public func getMeme(account : Artista) : async ?Meme {
-    let meme = memes.get(account);
-    return meme;
+  public func reply(quest: Text, reply: Text) : async Text {
+    let question_for_entry :?Question = questions.get(quest);
+    let question : Question = switch question_for_entry {
+      case (null) {
+        {
+          question = ""; respuesta_a = ""; respuesta_b = ""; correcta= "";
+        };
+      };
+      case (?question_for_entry) question_for_entry;
+    };
+    if (question.correcta == reply) {
+      return "Correcto"
+    } else {
+      return "Incorrecto"
+    }
   };
 
-  //funcion que lista todos los memes
-  public func getNumberOfMemes() : async Int {
-    //se obtiene el numero de elementos del HashMap como numero de memes
-    memes.size();
-  };
+  public shared (msg) func createQuestions() : async [(Text, Question)] {
+      questions.put("1", {question = "¿Cuantos años hay en un siglo?"; respuesta_a = "10 años"; respuesta_b = "100 años"; correcta = "100 años";});
 
+      questions.put("2", {question = "¿Quien fue Da Vinci?"; respuesta_a = "Un doctor"; respuesta_b = "Un artista"; correcta = "Un artista";});
+
+      questions.put("3", {question = "¿Cuantos Bytes hay en un KiloByte?"; respuesta_a = "1000 bytes"; respuesta_b = "10000 bytes"; correcta = "1000 bytes";});
+
+      questions.put("4", {question = "¿Que no es un lenguaje de programacion?"; respuesta_a = "Python"; respuesta_b = "VSCode"; correcta = "VSCode";});
+
+      questions.put("5", {question = "¿Que es un solsticio?"; respuesta_a = "La mayor declinacion del sol con respecto al ecuador"; respuesta_b = "El momento cuando la orbita de un planeta esta en su punto mas alejado"; correcta = "La mayor declinacion del sol con respecto al ecuador";});
+
+      questions.put("6", {question = "¿Que significa 'Plvs Vltra'?"; respuesta_a = "Más allá"; respuesta_b = "Ultra luz"; correcta = "Más allá";});
+
+      questions.put("7", {question = "¿Que es Nightcore?"; respuesta_a = "Una aplicacion de citas"; respuesta_b = "Un genero musical"; correcta = "Un genero musical";});
+
+      questions.put("8", {question = "¿Quien de estas figuras uso antes una maquina de vapor?"; respuesta_a = "Edward Huber"; respuesta_b = "Jerónimo de Ayanz"; correcta = "Jerónimo de Ayanz";});
+      return Iter.toArray(questions.entries())
+  };
 };
