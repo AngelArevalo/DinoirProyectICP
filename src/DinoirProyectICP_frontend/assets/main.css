@@ -3,7 +3,7 @@ body {
     font-size: 1.5rem;
 }
 
-img {
+/* img {
     max-width: 50vw;
     max-height: 25vw;
     display: block;
@@ -19,12 +19,11 @@ form {
     margin: auto;
     align-items: baseline;
 }
-
 button[type="submit"] {
     padding: 5px 20px;
     margin: 10px auto;
     float: right;
-}
+} */
 
 #greeting {
     margin: 10px auto;
@@ -34,4 +33,15 @@ button[type="submit"] {
 
 #greeting:empty {
     display: none;
+}
+.form_log {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-gap: 10px;
+    grid-auto-rows: repeat(3, auto);
+}
+.log_ing {
+    grid-column: 2;
+    grid-row: 2;
+    background-color: blue;
 }
